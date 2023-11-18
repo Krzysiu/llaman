@@ -1,0 +1,9 @@
+max cache time
+open in browser
+clean code
+display time of ss64 cache
+allow loading local files, just like manpages
+remove leftover tags
+add non-cURL method of retriving data
+quiet mode (without clog stuff)
+ability to ignore non zero errorcodes
