@@ -14,10 +14,11 @@
     $specs->add('n|nocache?', 'don\'t cache results');
     $specs->add('p|purge?', 'purge cache for particular command');
     $specs->add('h|help', 'shows this screen');
+
     $parser = new OptionParser($specs);
-    
+
     try {
-        $result = $parser->parse( $argv );
+        $result = $parser->parse($argv);
         $args = $result->getArguments();
         $str = $result->keys['style']->value; // return the option value  
         
@@ -25,8 +26,8 @@
         echo $e->getMessage();
         
     }
-    
-    if (isset($result->help)) showHelp();
+
+    if ($result->has('help')) showHelp();
     
     // defines for styling system
     // See https://ss64.com/nt/syntax-ansi.html for preview and info 
@@ -162,11 +163,11 @@
     
     // ss64
     
-    if (isset($result->purge)) @unlink(getCacheFileName($item, 'ss64'));
+    if ($result->has('purge')) @unlink(getCacheFileName($item, 'ss64'));
     
-    if (!isset($result->local)) {
+    if (!$result->has('local')) {
         
-        if (checkCache($item, 'ss64') && !isset($result->nocache)) {
+        if (checkCache($item, 'ss64') && !$result->has('nocache')) {
             $help['ext'] = file_get_contents(getCacheFileName($item, 'ss64'));
             if (strpos($help['ext'], 'HTTP ') !== 0) {
                 
@@ -196,10 +197,10 @@
                 $help['ext'] = $ssResponse;
                 clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($ssResponse)]);
                 
-                if (!isset($result->nocache)) file_put_contents(getCacheFileName($item, 'ss64'), $help['ext']);
+                if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), $help['ext']);
                 } else {
                 clog(['ss64 error: HTTP %d', $httpCode], 2);
-                if (!isset($result->nocache)) file_put_contents(getCacheFileName($item, 'ss64'), 'HTTP ' . $httpCode); // cache non HTTP 200 pages as well
+                if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), 'HTTP ' . $httpCode); // cache non HTTP 200 pages as well
             }
             
             
