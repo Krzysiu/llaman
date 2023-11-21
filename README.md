@@ -1,18 +1,18 @@
 ## Examples
 
-`man break` 
+`man break` (in this case fetches and formats entry from ss64.com)
+![break1](https://github.com/Krzysiu/llaman/assets/2560298/e0d445b3-6e87-4d42-b63f-321ab783d869)
 
-[img placeholder]
-
-`man break -l` (use local help only)
-
-[img placeholder]
+--- 
+`man break -l` (use local help only, in this case it executes shell command break /?)
+![breaklocal](https://github.com/Krzysiu/llaman/assets/2560298/92c38833-e341-4fbc-90b5-97f299dc085b)
 
 ## Purpose
 
 LlaMan serves as something like man pages in Linux. It either tries to get info from command line parameters (like --help or /?) or from ss64.com. The latter gets printed in Windows console with as much formatting as possible - and it's easily configurable!
 
 ## How does it work?
+
 
 For local help pages it simply tries to run command with following parameters: `-h`, `--help`, `/?` and without parameters - both as executable (`exec` method) and shell commands (`shell_exec` method). Then it assumes that the longest output is correct one. If there's page about particular command on ss64.com, it fetches the page, caches it, formats and displays it.
 
@@ -41,8 +41,6 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 `man **command**` where command* is a name of command you want to see help for.
 
 **Additional settings**
-
-`   
 
         -s, --style[=default]
                 changes print style (available: default, print, none)
@@ -90,6 +88,8 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 * add non-cURL method of retriving data
 
 * ability to ignore non zero errorcodes
+
+* make logo maybe?
 
 * allow choice of non-longest help
 
