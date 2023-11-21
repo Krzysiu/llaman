@@ -40,28 +40,32 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 
 `man **command**` where command* is a name of command you want to see help for.
 
-**Additional settings**
+**Additional parameters**
 
+Options:
         -s, --style[=default]
-                changes print style (available: default, print, none)
-    
+                changes print style
+
         -l, --local
                 prefer local help
-    
+
         -n, --nocache
                 don't cache results
-    
+
         -p, --purge
                 purge cache for particular command
-                
+
         -b, --browser
                 open ss64.com result in browser, if available
 
-        -h, --help
-                shows help screen
-                
+        -u, --update
+                check for updates
+
         -v, --verbose
                 verbose mode
+
+        -h, --help
+                shows help screen
 
 ## Styling
 

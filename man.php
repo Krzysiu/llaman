@@ -14,8 +14,12 @@
     $specs->add('n|nocache', 'don\'t cache results');
     $specs->add('p|purge', 'purge cache for particular command');
     $specs->add('b|browser', 'open ss64.com result in browser, if available');
-    $specs->add('h|help', 'shows this screen');
+    $specs->add('u|update', 'check for updates');
     $specs->add('v|verbose', 'verbose mode');
+    $specs->add('h|help', 'shows this screen');
+    
+    $version = file_get_contents('version');
+    
     
     
     $parser = new OptionParser($specs);
@@ -31,7 +35,23 @@
     }
     $v = $result->has('verbose');
     
+    function verStringToInt($ver) {
+        $ver = explode('.',$ver);
+        $ver = array_reverse($ver);
+        array_walk($ver, function (&$seg, $key) { $seg = pow(10, $key) * $seg;});
+        return array_sum($ver);
+    }
+    if ($result->has('update')) {
+    $ghVer = @file_get_contents('https://raw.githubusercontent.com/Krzysiu/llaman/main/version');
+    if (!$ghVer) { clog('Can\'t access GihHub repository. Update check failed.', CL_WARN); die(1); }
     
+    if (verStringToInt($ghVer) > verStringToInt($version)) clog(['Your version (%s) has update available (%s). Check https://github.com/Krzysiu/llaman', $version, $ghVer], CL_OKAY);
+    else clog(['No update available for your version (%s).', $version, $ghVer], CL_INFO);
+    
+    die(0);
+    }
+    
+
     // defines for styling system
     // See https://ss64.com/nt/syntax-ansi.html for preview and info 
     // If you have older Windows, try https://github.com/adoxa/ansicon
@@ -340,8 +360,8 @@
     }                        
     
     function showHelp() {
-        global $specs;
-        $version = file_get_contents('version');
+        global $specs, $version;
+        
         echo S_BG_BRIGHT_BLUE . S_FG_WHITE . "Llaman v{$version} - colorful console online and local documentation parser"  . S_END . PHP_EOL;
         echo S_UNDERLINE . S_FG_BRIGHT_BLUE . "https://github.com/Krzysiu/llaman" . S_END . PHP_EOL . PHP_EOL ;
         echo "Usage:" . PHP_EOL . 'php ' .  __FILE__ . ' [options] command'. PHP_EOL .  PHP_EOL . 'Options:' . PHP_EOL; 
@@ -351,4 +371,4 @@
         echo $printer->render($specs);
         exit(0);
         return;
-    }                                
+    }                                    
