@@ -55,7 +55,10 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
     
         -p, --purge
                 purge cache for particular command
-    
+                
+        -b, --browser
+                open ss64.com result in browser, if available
+
         -h, --help
                 shows help screen
                 
@@ -75,8 +78,6 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 ## Todo
 
 * max cache time
-
-* open in browser
 
 * clean code
 

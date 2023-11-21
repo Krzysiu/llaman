@@ -13,8 +13,10 @@
     $specs->add('l|local', 'prefer local help');
     $specs->add('n|nocache', 'don\'t cache results');
     $specs->add('p|purge', 'purge cache for particular command');
+    $specs->add('b|browser', 'open ss64.com result in browser, if available');
     $specs->add('h|help', 'shows this screen');
     $specs->add('v|verbose', 'verbose mode');
+    
     
     $parser = new OptionParser($specs);
     
@@ -179,8 +181,12 @@
             if (strpos($help['ext'], 'HTTP ') !== 0) {
                 
                 if ($v) clog(['Pontential help page available from cache: %s' . PHP_EOL, getCacheFileName($item, 'ss64')]);
-                } else { 
-                if ($v) clog(['ss64.com cached page exists, but it returned error (%s). Consider checking manually (%s) or clear the cache', $help['ext'], $url], 2);
+                if ($v) clog(['Opening ss64.com page (%s) in default browser' . PHP_EOL, $url]);
+                shell_exec('start ' . $url);
+                die(0);
+                } else {
+                if ($v) clog(['ss64.com cached page exists, but it returned error (%s). Consider checking manually (%s) or clear the cache (-p flag)', $help['ext'], $url], 2);
+                if ($result->has('browser')) die(1);
                 unset($help['ext']);
             }
             } else {
@@ -201,12 +207,19 @@
             // Output the downloaded content
             
             if ($httpCode === 200) { // proceed if HTTP 200 (ok)
+                if ($result->has('browser')) {
+                    if ($v) clog(['Opening ss64.com page (%s) in default browser' . PHP_EOL, $url]);
+                    shell_exec('start ' . $url);
+                    die(0);
+                }
+                
                 $help['ext'] = $ssResponse;
                 if ($v) clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($ssResponse)]);
                 
                 if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), $help['ext']);
                 } else {
                 if ($v) clog(['ss64 error: HTTP %d', $httpCode], 2);
+                if ($v && $result->has('browser')) { clog(['ss64.com resource unavailable (HTTP %d)' . PHP_EOL, $httpCode], 2); die(1); }
                 if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), 'HTTP ' . $httpCode); // cache non HTTP 200 pages as well
             }
             
@@ -338,4 +351,4 @@
         echo $printer->render($specs);
         exit(0);
         return;
-    }                        
+    }                                
