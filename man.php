@@ -10,13 +10,14 @@
     
     $specs = new OptionCollection;
     $specs->add('s|style?', 'changes print style')->isa('String')->defaultValue('default');
-    $specs->add('l|local?', 'prefer local help');
-    $specs->add('n|nocache?', 'don\'t cache results');
-    $specs->add('p|purge?', 'purge cache for particular command');
+    $specs->add('l|local', 'prefer local help');
+    $specs->add('n|nocache', 'don\'t cache results');
+    $specs->add('p|purge', 'purge cache for particular command');
     $specs->add('h|help', 'shows this screen');
-
+    $specs->add('v|verbose', 'verbose mode');
+    
     $parser = new OptionParser($specs);
-
+    
     try {
         $result = $parser->parse($argv);
         $args = $result->getArguments();
@@ -26,14 +27,14 @@
         echo $e->getMessage();
         
     }
-
-    if ($result->has('help')) showHelp();
+    $v = $result->has('verbose');
+    
     
     // defines for styling system
     // See https://ss64.com/nt/syntax-ansi.html for preview and info 
     // If you have older Windows, try https://github.com/adoxa/ansicon
     
-
+    
     // 1) foreground 
     define('S_FG_BLACK', "\033[30m");
     define('S_FG_RED', "\033[31m");
@@ -71,6 +72,11 @@
     define('S_BG_BRIGHT_WHITE', "\033[107m");
     
     // 3) special styles
+    
+    // switches fg with bg. Works one time, so using two S_REVERSE won't get to 
+    // the starting point. You have to use alternating S_REVERSE and S_UNREVERSE
+    define('S_REVERSE', "\033[7m"); 
+    define('S_UNREVERSE', "\033[27m"); // switches fg with bg (works one time)
     define('S_UNDERLINE', "\033[4m");
     define('S_NOUNDERLINE', "\033[24m");
     
@@ -79,6 +85,7 @@
     define('S_BOLD', "\033[1m"); 
     define('S_END', "\033[0m");
     
+    if ($result->has('help')) showHelp();
     /*
         Styles
         
@@ -108,15 +115,15 @@
     
     
     $curStyle = $style[$result->keys['style']->value];
-
+    
     @$item = $args[0];
     if (!$item) showHelp();
     
     $cacheDir = $config['cacheDir'] === null ? getenv('LOCALAPPDATA') . DIRECTORY_SEPARATOR . 'llaMan' : $config['cache'];
     if (!(file_exists($cacheDir) && is_dir($cacheDir))) {
         mkdir($cacheDir); // create cache director if it's not there yet
-        clog(['Creating cache directory: %s', $cacheDir]);
-    } else clog(['Using cache directory: %s', $cacheDir]);
+        if ($v) clog(['Creating cache directory: %s', $cacheDir]);
+    } else if ($v) clog(['Using cache directory: %s', $cacheDir]);
     
     
     // command parameters to check - all are checked, even if there's some 
@@ -136,15 +143,15 @@
         
         $out = implode(PHP_EOL, $out);
         if ($errlevel === 0) { // let's hope help page won't trigger non-zero exit code
-            clog(['Pontential help page available from command line parameter: %s (%d characters)', $param, iconv_strlen($out)]);
+            if ($v) clog(['Pontential help page available from command line parameter: %s (%d characters)', $param, iconv_strlen($out)]);
             $help['cmd'][] = $out;
         }
         
         $shellRes = shell_exec($cmd);
         
         if (trim($shellRes) != '') {
-        
-            clog(['Pontential help page available from shell parameter: %s (%d characters)', $param, iconv_strlen($out)]);
+            
+            if ($v) clog(['Pontential help page available from shell parameter: %s (%d characters)', $param, iconv_strlen($out)]);
             $help['cmd'][] = $shellRes;
         }
         
@@ -171,9 +178,9 @@
             $help['ext'] = file_get_contents(getCacheFileName($item, 'ss64'));
             if (strpos($help['ext'], 'HTTP ') !== 0) {
                 
-                clog(['Pontential help page available from cache: %s' . PHP_EOL, getCacheFileName($item, 'ss64')]);
+                if ($v) clog(['Pontential help page available from cache: %s' . PHP_EOL, getCacheFileName($item, 'ss64')]);
                 } else { 
-                clog(['ss64.com cached page exists, but it returned error (%s). Consider checking manually (%s) or clear the cache', $help['ext'], $url], 2);
+                if ($v) clog(['ss64.com cached page exists, but it returned error (%s). Consider checking manually (%s) or clear the cache', $help['ext'], $url], 2);
                 unset($help['ext']);
             }
             } else {
@@ -187,7 +194,7 @@
             
             $ssResponse = curl_exec($ch);
             
-            if (curl_errno($ch)) clog(['cURL error: %s', curl_error($ch)], 2);
+            if (curl_errno($ch) && $v) clog(['cURL error: %s', curl_error($ch)], 2);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // get status code
             curl_close($ch);
             
@@ -195,11 +202,11 @@
             
             if ($httpCode === 200) { // proceed if HTTP 200 (ok)
                 $help['ext'] = $ssResponse;
-                clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($ssResponse)]);
+                if ($v) clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($ssResponse)]);
                 
                 if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), $help['ext']);
                 } else {
-                clog(['ss64 error: HTTP %d', $httpCode], 2);
+                if ($v) clog(['ss64 error: HTTP %d', $httpCode], 2);
                 if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), 'HTTP ' . $httpCode); // cache non HTTP 200 pages as well
             }
             
@@ -212,7 +219,7 @@
         $help['ext'] = trim(substr($help['ext'], 0, strpos($help['ext'], '<!-- #BeginLibraryItem "/Library/foot_nt.lbi" -->'))); // trim footer
         $help['ext'] = convertHTML($help['ext']); // magic happens here
         echo $help['ext'] . PHP_EOL . PHP_EOL . 'Source: ' . $url;
-    } else if (array_key_exists('cmd', $help)) echo $help['cmd'][0]; else clog(['Can\'t find help for %s', $item], 2);
+    } else if (array_key_exists('cmd', $help)) echo $help['cmd'][0]; else if ($v) clog(['Can\'t find help for %s', $item], 2);
     echo S_END . S_NOUNDERLINE; // just in case of wrong style
     function convertHTML($string) {
         global $curStyle;
@@ -321,9 +328,14 @@
     
     function showHelp() {
         global $specs;
+        $version = file_get_contents('version');
+        echo S_BG_BRIGHT_BLUE . S_FG_WHITE . "Llaman v{$version} - colorful console online and local documentation parser"  . S_END . PHP_EOL;
+        echo S_UNDERLINE . S_FG_BRIGHT_BLUE . "https://github.com/Krzysiu/llaman" . S_END . PHP_EOL . PHP_EOL ;
+        echo "Usage:" . PHP_EOL . 'php ' .  __FILE__ . ' [options] command'. PHP_EOL .  PHP_EOL . 'Options:' . PHP_EOL; 
+        
         $parser = new OptionParser($specs);
         $printer = new ConsoleOptionPrinter();
         echo $printer->render($specs);
         exit(0);
         return;
-    }        
+    }                        

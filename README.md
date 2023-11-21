@@ -47,17 +47,20 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
         -s, --style[=default]
                 changes print style (available: default, print, none)
     
-        -l, --local[=]
+        -l, --local
                 prefer local help
     
-        -n, --nocache[=]
+        -n, --nocache
                 don't cache results
     
-        -p, --purge[=]
+        -p, --purge
                 purge cache for particular command
     
         -h, --help
                 shows help screen
+                
+        -v, --verbose
+                verbose mode
 
 ## Styling
 
@@ -84,8 +87,6 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 * remove leftover tags
 
 * add non-cURL method of retriving data
-
-* quiet mode (without clog stuff)
 
 * ability to ignore non zero errorcodes
 
