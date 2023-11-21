@@ -1,3 +1,9 @@
+
+<img align="left" src="https://user-images.githubusercontent.com/2560298/284696687-88ec3ba5-b1ec-409a-80ae-626ccdbb0f60.png">
+ **LlaMan** - man wannabe for windows - find and show in console documentation for command or application - no more "*was is `/?` or `-h`*", no more poor documented Windows commands and functions.<br clear="both"/>
+
+
+
 ## Examples
 
 `man break` (in this case fetches and formats entry from ss64.com)
@@ -92,8 +98,6 @@ Options:
 * add non-cURL method of retriving data
 
 * ability to ignore non zero errorcodes
-
-* make logo maybe?
 
 * allow choice of non-longest help
 
