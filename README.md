@@ -1,6 +1,6 @@
 
 <img align="left" src="https://user-images.githubusercontent.com/2560298/284696687-88ec3ba5-b1ec-409a-80ae-626ccdbb0f60.png">
- **LlaMan** - man wannabe for windows - find and show in console documentation for command or application - no more "*was is `/?` or `-h`*", no more poor documented Windows commands and functions.<br clear="both"/>
+ **LlaMan** - man wannabe for windows - find and show in console documentation for command or application - no more "was&nbsp;it&nbsp;/?&nbsp;or&nbsp;-h?", no more poor documented Windows commands and functions.<br clear="both"/>
 
 
 
