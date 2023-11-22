@@ -134,9 +134,12 @@
     ]; // output style for ss64 (and eventually for other)
     foreach (glob(dirname(__FILE__) . DIRECTORY_SEPARATOR . 'style.*') as $file) include_once($file);
     foreach ($style as $name => &$s) { $s = array_merge($style['none'], $s); } // merge with empty array to avoid notices
+    $styleName = strtolower($result->keys['style']->value);
     
-    
-    $curStyle = $style[$result->keys['style']->value];
+    $style = array_combine(array_map('strtolower', array_keys($style)), array_values($style)); // lowercase style names
+
+    if (!array_key_exists($styleName, $style)) clog(['Style "%s" not found. Available styles: %s', $styleName, implode(', ', array_keys($style))], 0);
+    $curStyle = $style[$styleName];
     
     @$item = $args[0];
     if (!$item) showHelp();
