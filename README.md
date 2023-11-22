@@ -24,9 +24,9 @@ For local help pages it simply tries to run command with following parameters: `
 
 ## Requirements
 
-* PHP (tested on 7.4) with cURL module
+* PHP (tested on 7.4)
 
-* WIndows 10 or older with [ANSICon](https://github.com/adoxa/ansicon)
+* WIndows 10 (or older with [ANSICon](https://github.com/adoxa/ansicon))
 
 ## Installation
 
@@ -51,6 +51,9 @@ This instruction assumes script already "installed" (points 2-3 in Installation 
 Options:
         -s, --style[=default]
                 changes print style
+
+        -S, --list-styles
+                list available styles
 
         -l, --local
                 prefer local help
@@ -95,8 +98,6 @@ Options:
 
 * remove leftover tags
 
-* add non-cURL method of retriving data
-
 * ability to ignore non zero errorcodes
 
 * allow choice of non-longest help
@@ -104,3 +105,5 @@ Options:
 * display raw HTML for ss64
 
 * scroll up/down ability
+
+* -i / --install to generate batch file

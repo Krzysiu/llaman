@@ -3,6 +3,7 @@
     require 'config.php';
     require 'vendor/autoload.php';
     require 'func.clog.php';
+    require 'func.dlfile.php';
     
     use GetOptionKit\OptionCollection;
     use GetOptionKit\OptionParser;
@@ -10,6 +11,7 @@
     
     $specs = new OptionCollection;
     $specs->add('s|style?', 'changes print style')->isa('String')->defaultValue('default');
+    $specs->add('S|list-styles', 'list available styles');    
     $specs->add('l|local', 'prefer local help');
     $specs->add('n|nocache', 'don\'t cache results');
     $specs->add('p|purge', 'purge cache for particular command');
@@ -42,16 +44,16 @@
         return array_sum($ver);
     }
     if ($result->has('update')) {
-    $ghVer = @file_get_contents('https://raw.githubusercontent.com/Krzysiu/llaman/main/version');
-    if (!$ghVer) { clog('Can\'t access GihHub repository. Update check failed.', CL_WARN); die(1); }
-    
-    if (verStringToInt($ghVer) > verStringToInt($version)) clog(['Your version (%s) has update available (%s). Check https://github.com/Krzysiu/llaman', $version, $ghVer], CL_OKAY);
-    else clog(['No update available for your version (%s).', $version, $ghVer], CL_INFO);
-    
-    die(0);
+        $ghVer = @file_get_contents('https://raw.githubusercontent.com/Krzysiu/llaman/main/version');
+        if (!$ghVer) { clog('Can\'t access GihHub repository. Update check failed.', CL_WARN); die(1); }
+        
+        if (verStringToInt($ghVer) > verStringToInt($version)) clog(['Your version (%s) has update available (%s). Check https://github.com/Krzysiu/llaman', $version, $ghVer], CL_OKAY);
+        else clog(['No update available for your version (%s).', $version, $ghVer], CL_INFO);
+        
+        die(0);
     }
     
-
+    
     // defines for styling system
     // See https://ss64.com/nt/syntax-ansi.html for preview and info 
     // If you have older Windows, try https://github.com/adoxa/ansicon
@@ -137,7 +139,12 @@
     $styleName = strtolower($result->keys['style']->value);
     
     $style = array_combine(array_map('strtolower', array_keys($style)), array_values($style)); // lowercase style names
-
+    
+    if ($result->has('list-styles')) { // list styles
+        clog(['Available styles: %s', implode(', ', array_keys($style))]); 
+        die(0);
+        }
+        
     if (!array_key_exists($styleName, $style)) clog(['Style "%s" not found. Available styles: %s', $styleName, implode(', ', array_keys($style))], 0);
     $curStyle = $style[$styleName];
     
@@ -157,7 +164,7 @@
     
     $helpParameters = ['/?', '-h', '--help', '']; 
     $ss = "https://ss64.com/nt/%s.html";
-    $url = sprintf($ss, $item);
+    
     
     $help = ['cmd' => []]; // init main array
     foreach ($helpParameters as $param) {
@@ -196,39 +203,33 @@
     // ss64
     
     if ($result->has('purge')) @unlink(getCacheFileName($item, 'ss64'));
-    
+    $url = sprintf($ss, $item);
     if (!$result->has('local')) {
         
         if (checkCache($item, 'ss64') && !$result->has('nocache')) {
             $help['ext'] = file_get_contents(getCacheFileName($item, 'ss64'));
+            
             if (strpos($help['ext'], 'HTTP ') !== 0) {
                 
                 if ($v) clog(['Pontential help page available from cache: %s' . PHP_EOL, getCacheFileName($item, 'ss64')]);
-                if ($v) clog(['Opening ss64.com page (%s) in default browser' . PHP_EOL, $url]);
-                shell_exec('start ' . $url);
-                die(0);
+                if ($result->has('browser')) {
+                    if ($v) clog(['Opening ss64.com page (%s) in default browser' . PHP_EOL, $url]);
+                    shell_exec('start ' . $url);
+                    die(0);
+                }
                 } else {
                 if ($v) clog(['ss64.com cached page exists, but it returned error (%s). Consider checking manually (%s) or clear the cache (-p flag)', $help['ext'], $url], 2);
                 if ($result->has('browser')) die(1);
                 unset($help['ext']);
             }
+
             } else {
-            
-            
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false); // security risk, but...
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // needed for older PHP compatibility
-            curl_setopt($ch, CURLOPT_USERAGENT, $config['ua']); // user agent. Try keeping it as it is, so devs can manage/block this tool
-            
-            $ssResponse = curl_exec($ch);
-            
-            if (curl_errno($ch) && $v) clog(['cURL error: %s', curl_error($ch)], 2);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE); // get status code
-            curl_close($ch);
+
+            $httpCode = 0;
+            $dlData = dlFile($url, $httpCode);
             
             // Output the downloaded content
-            
+            var_dump($dlData);
             if ($httpCode === 200) { // proceed if HTTP 200 (ok)
                 if ($result->has('browser')) {
                     if ($v) clog(['Opening ss64.com page (%s) in default browser' . PHP_EOL, $url]);
@@ -236,8 +237,8 @@
                     die(0);
                 }
                 
-                $help['ext'] = $ssResponse;
-                if ($v) clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($ssResponse)]);
+                $help['ext'] = $dlData;
+                if ($v) clog(['Pontential help page available from online source: %s (%d characters)' . PHP_EOL, $item, iconv_strlen($dlData)]);
                 
                 if (!$result->has('nocache')) file_put_contents(getCacheFileName($item, 'ss64'), $help['ext']);
                 } else {
@@ -374,4 +375,4 @@
         echo $printer->render($specs);
         exit(0);
         return;
-    }                                    
+    }                                        
